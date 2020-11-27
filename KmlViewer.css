@@ -1,0 +1,60 @@
+.kml-viewer{
+    padding:0em;
+}
+
+.kml-viewer-error{
+    color: darkred;
+    margin: 1em 0em;
+}
+.kml-viewer-folder{
+    padding: 0em;
+    margin: 0.6em;
+    text-align: left;
+    background-color: #fff;
+    border: 1px solid black;
+    border-radius: 3px;
+    box-shadow: 0.3em 0.3em 0.3em rgba(0, 0, 0, 0.4);
+}
+.kml-viewer-placemark:hover{
+    cursor: pointer;
+    outline: 1px solid red;
+}
+.kml-viewer-placemark.selected{
+    background-color: yellow;
+}
+.kml-viewer-locate {
+    display:block;
+    float:right;
+    width: 1em;
+    height: 1em;
+    background: url(/images/locate.svg) 100% 100% no-repeat;
+    background-size: cover;
+    cursor: pointer;
+}
+.kml-viewer-locate:hover {
+    background-color:aqua ;
+}
+  
+.kml-viewer-name{
+    padding: 0.2em;
+    background-color: #ddd;
+
+}
+.kml-viewer-geotype{
+    display: inline-block;
+    min-width: 6em;
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+    font-size: small;
+}
+.kml-viewer-geotype[tag='Point']     { background-color: rgb(2, 124, 2); }
+.kml-viewer-geotype[tag='LineString']{ background-color: rgb(245, 76, 33); }
+.kml-viewer-geotype[tag='LineRing']  { background-color: rgb(245, 76, 33); }
+.kml-viewer-geotype[tag='Polygon']   { background-color: rgb(32, 4, 134); }
+
+.kml-viewer-geoname{
+    display: inline-block;
+    padding-left: 1em;
+    text-align: left;
+}
