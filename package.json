@@ -1,0 +1,23 @@
+{
+  "name": "react-kml-viewer",
+  "version": "0.1.0",
+  "description": "Parse and view KML-data",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/igormayachenkov/react-kml-viewer.git"
+  },
+  "author": "Igor Mayachenkov",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "directories": {},
+  "scripts": {
+  },
+  "files":[
+    "package.json",
+    "LICENSE",
+    "README.md",
+    "index.js"
+  ]
+}
