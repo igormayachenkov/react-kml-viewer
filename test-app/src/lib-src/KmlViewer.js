@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import kmlParser from "./KmlParser";
 import './KmlViewer.css';
-//import { api } from "./Map";
-const api=null
 
 //-----------------------------------------------------------------------------
 //
@@ -223,6 +221,7 @@ export class KmlViewer extends Component{
     }
 
     locatePlacemark(obj){
+        let api = this.props.googleMapsAPI;
         if(!api) return;
         if(!api.map) return;
 
