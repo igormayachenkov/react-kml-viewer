@@ -1,2 +1,2 @@
-exports.KmlViewer              = require("./KmlViewer.js").KmlViewer;
-exports.parseFromDOMDocument   = require("./KmlParser.js").parseFromDOMDocument;
+exports.KmlViewer              = require("./lib/KmlViewer.js").KmlViewer;
+exports.parseFromDOMDocument   = require("./lib/KmlParser.js").parseFromDOMDocument;

@@ -19,11 +19,14 @@ import './KmlViewer.css';
 // https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change
 
 export default class KmlViewer extends Component{
-    // State
-    state = { 
-        error       : 'data is empty',
-        data        : null,
-        dataLength  : 0
+    constructor(){
+        super();
+        // State
+        this.state = { 
+            error       : 'data is empty',
+            data        : null,
+            dataLength  : 0
+        }
     }
     
     static getDerivedStateFromProps(props, state) {

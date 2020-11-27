@@ -9,18 +9,23 @@
   },
   "author": "Igor Mayachenkov",
   "license": "MIT",
-  "dependencies": {
-  },
+  "dependencies": {},
   "directories": {},
   "scripts": {
+    "build": "./node_modules/.bin/babel src -d lib"
   },
-  "files":[
+  "files": [
     "package.json",
     "LICENSE",
     "README.md",
     "index.js",
-    "KmlViewer.js",
-    "KmlParser.js",
-    "KmlViewer.css"
-  ]
+    "lib/KmlViewer.js",
+    "lib/KmlParser.js",
+    "src/KmlViewer.css"
+  ],
+  "devDependencies": {
+    "@babel/cli": "^7.12.8",
+    "@babel/core": "^7.12.9",
+    "@babel/preset-react": "^7.12.7"
+  }
 }
