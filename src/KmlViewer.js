@@ -18,7 +18,7 @@ import './KmlViewer.css';
 // https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html#when-to-use-derived-state
 // https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change
 
-export default class KmlViewer extends Component{
+export class KmlViewer extends Component{
     constructor(){
         super();
         // State
