@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import kmlParser from "./KmlParser";
 import './KmlViewer.css';
 //import { api } from "./Map";
-
+const api=null
 
 //-----------------------------------------------------------------------------
 //
