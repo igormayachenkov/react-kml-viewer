@@ -18,6 +18,9 @@
     "package.json",
     "LICENSE",
     "README.md",
-    "index.js"
+    "index.js",
+    "KmlViewer.js",
+    "KmlParser.js",
+    "KmlViewer.css"
   ]
 }
