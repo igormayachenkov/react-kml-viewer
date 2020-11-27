@@ -21,7 +21,7 @@
     "index.js",
     "lib/KmlViewer.js",
     "lib/KmlParser.js",
-    "src/KmlViewer.css"
+    "lib/KmlViewer.css"
   ],
   "devDependencies": {
     "@babel/cli": "^7.12.8",
