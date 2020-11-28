@@ -12,13 +12,14 @@
 // Parsed data node format:
 // {
 //   //   id          : Number - inique number generated during parsing
+//      // for Container
 //      name        : String
 //      folders     : Array
 //      placemarks  : Array
-//      // for Placemarks 
+//
+//      // for Placemark
 //      point       : Object
 //      lineString  : Object
-//      lineRing    : Object
 //      polygon     : Object
 //  }
 exports.parseFromDOMDocument = function(domDocument){
@@ -26,15 +27,21 @@ exports.parseFromDOMDocument = function(domDocument){
 
     // Verify structure: kml/Document
     let kml = getChildByTagName(domDocument,"kml");
-    if(!kml) throw 'KML format error: Element "kml" is not found';
+    if(!kml) throw String('KML format error: Element "kml" is not found');
     let document = getChildByTagName(kml,"Document");    //domDocument.getElementsByTagName("Document")[0]
-    if(!document) throw 'KML format error: Element "Document" is not found';
+    if(!document) throw String('KML format error: Element "Document" is not found');
     
     // Parce document as a container
  //   idBase = 0;
     return parseElement(document, containerChildParcers);
 }
 //var idBase = 0; // parallel parcing will make wrong ids
+
+class ParsingError{
+    constructor(text){
+        this.text=text
+    }
+}
 
 // COMMON PARSER
 const parseElement = function(element,childParcers){
@@ -64,12 +71,12 @@ const parseCoordinates = function(element){
         if(!item.length) return;
         // Split into text values
         let values = item.split(',');
-        if(values.length<2) {console.error('KmlParcer. wrong coordinates',item); return; }
+        if(values.length<2) {handleError(new ParsingError('wrong coordinates "'+item+'" (length<2)')); return; }
         // Convert to digits
         let coord=[]
         for(let i=0; i<values.length; i++){
             let num = Number(values[i])
-            if(isNaN(num)){console.error('KmlParcer. wrong coordinates',item); return; }
+            if(isNaN(num)){handleError(new ParsingError('wrong coordinates "'+item+'" (not a number)')); return; }
             coord.push(num);
         }
         coordinates.push(coord)
@@ -97,7 +104,7 @@ const containerChildParcers = {
             if(!parent.placemarks)  parent.placemarks=[];
             parent.placemarks.push(obj); 
         }catch(err){
-            console.error('KmlParcer',err);
+            handleError(err)
         }
     }
 }
@@ -109,7 +116,7 @@ const placemarkChildParcers = {
     'Point'     : (parent,element)=>{ 
         let obj = parseElement(element,geometryChildParcers)
         // Verify
-        if(!obj.coordinates || obj.coordinates.length==0) throw "Point with empty coordinates"
+        if(!obj.coordinates || obj.coordinates.length===0) throw new ParsingError("Point with empty coordinates")
         obj.coordinates = obj.coordinates[0]
         // Add to the parent
         parent.point = obj; 
@@ -118,7 +125,7 @@ const placemarkChildParcers = {
     'LineString': (parent,element)=>{ 
         let obj = parseElement(element,geometryChildParcers)
         // Verify
-        if(!obj.coordinates || obj.coordinates.length==0) throw "LineString with empty coordinates"
+        if(!obj.coordinates || obj.coordinates.length===0) throw new ParsingError("LineString with empty coordinates")
         // Add to the parent
         parent.lineString = obj;
     },
@@ -126,7 +133,7 @@ const placemarkChildParcers = {
     'Polygon'   : (parent,element)=>{ 
         let obj = parseElement(element,geometryChildParcers)
         // Verify
-        if(!obj.outerBoundaryIs) throw "Polygon with empty outerBoundaryIs"
+        if(!obj.outerBoundaryIs) throw new ParsingError("Polygon with empty outerBoundaryIs")
         // Add to the parent
         parent.polygon = obj; 
     },
@@ -138,7 +145,7 @@ const geometryChildParcers = {
     'outerBoundaryIs'   : (parent,element)=>{ 
         let obj = parseElement(element,geometryChildParcers)
         // Veerify
-        if(!obj.linearRing) throw "outerBoundaryIs without LinearRing"
+        if(!obj.linearRing) throw new ParsingError("outerBoundaryIs without LinearRing")
         // Add to the parent
         parent.outerBoundaryIs = obj; 
     },
@@ -146,7 +153,7 @@ const geometryChildParcers = {
     'innerBoundaryIs'   : (parent,element)=>{ 
         let obj = parseElement(element,geometryChildParcers)
         // Veerify
-        if(!obj.linearRing) throw "innerBoundaryIs without LinearRing"
+        if(!obj.linearRing) throw new ParsingError("innerBoundaryIs without LinearRing")
         // Add to the parent
         if(!parent.innerBoundaryIs) parent.innerBoundaryIs=[];
         parent.innerBoundaryIs.push( obj ); 
@@ -155,7 +162,7 @@ const geometryChildParcers = {
     'LinearRing'        : (parent,element)=>{ 
         let obj = parseElement(element,geometryChildParcers) 
         // Verify
-        if(!obj.coordinates) throw "LinearRing without cordinates"
+        if(!obj.coordinates) throw new ParsingError("LinearRing without cordinates")
         // Add to the parent
         parent.linearRing = obj
     },
@@ -174,6 +181,12 @@ const getChildByTagName = function(element, tagName){
         }
     }
     return null;
+}
+const handleError = function(error){
+    if(error instanceof ParsingError)
+        console.warn('KmlParcer: '+error.text);
+    else
+        throw error
 }
 
 
