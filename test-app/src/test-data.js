@@ -11,11 +11,6 @@ export default '<?xml version="1.0" encoding="UTF-8"?>\
             </Point>\
         </Placemark>\
         <Placemark>\
-            <name>wrong point</name>\
-            <Point>\
-            </Point>\
-        </Placemark>\
-        <Placemark>\
             <name>LinearRing.kml</name>\
             <Polygon>\
                 <outerBoundaryIs>\
@@ -23,9 +18,7 @@ export default '<?xml version="1.0" encoding="UTF-8"?>\
                         <coordinates>\
                         -122.365662,37.826988,0 -122.365202,37.826302,0\r\n\
                         -122.364581,37.82655,0  \r\
-                        -122.364581  \r\
                         -122.365038,37.827237,0 \n\
-                        wrong,value,0\
                         -122.365662,37.826988,0\
                         </coordinates>\
                     </LinearRing>\

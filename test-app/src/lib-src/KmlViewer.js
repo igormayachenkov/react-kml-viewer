@@ -16,6 +16,13 @@ import './KmlViewer.css';
 // https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html#when-to-use-derived-state
 // https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change
 
+// PROPS:
+//
+//  kmlText  |  kmlFile
+//  googleMap : window.google must be defined!
+//  
+
+
 export class KmlViewer extends Component{
     constructor(){
         super();
@@ -146,14 +153,14 @@ export class KmlViewer extends Component{
         this.setState({data:this.state.data})
     }
     updateMapDrawing(obj){
-        let api = this.props.googleMapsAPI;
-        if(!api || !api.map) return;
-        if( obj.isSelected && !obj.drawing) this.createDrawing(obj, api);
+        let map = this.props.googleMap;
+        if(!map) return;
+        if( obj.isSelected && !obj.drawing) this.createDrawing(obj, map);
         if(!obj.isSelected &&  obj.drawing) KmlViewer.removeDrawing(obj);
     }
 
     // MAP DRAWINGS
-    createDrawing(obj,api){
+    createDrawing(obj,map){
         //console.log('Create drawing');
         obj.drawing = {}
 
@@ -161,10 +168,10 @@ export class KmlViewer extends Component{
             let coord = obj.point.coordinates;
             let pos = {lat:coord[1], lng:coord[0]}
 
-            obj.drawing.marker = new api.maps.Marker({
+            obj.drawing.marker = new window.google.maps.Marker({
+                map     : map,
                 position: pos, 
-                map: api.map,
-                title:obj.name
+                title   : obj.name
             });
         }
 
@@ -172,13 +179,13 @@ export class KmlViewer extends Component{
             let coord = obj.lineString.coordinates; // verified by KmlParser
             let path = coord.map(x=>({lat:x[1], lng:x[0]}));
 
-            obj.drawing.polyline = new api.maps.Polyline({ 
-                path: path,
-                map: api.map,
-                geodesic: true,
-                strokeColor: '#FF0000',
-                strokeOpacity: 1.0,
-                strokeWeight: 5
+            obj.drawing.polyline = new window.google.maps.Polyline({ 
+                map             : map,
+                path            : path,
+                geodesic        : true,
+                strokeColor     : '#FF0000',
+                strokeOpacity   : 1.0,
+                strokeWeight    : 5
             })
         }
 
@@ -186,14 +193,14 @@ export class KmlViewer extends Component{
             let coord = obj.polygon.outerBoundaryIs.linearRing.coordinates; // verified by KmlParser
             let path = coord.map(x=>({lat:x[1], lng:x[0]}));
 
-            obj.drawing.polygon = new api.maps.Polygon({
-                paths: path,
-                strokeColor: "#FF0000",
-                strokeOpacity: 0.8,
-                strokeWeight: 3,
-                fillColor: "#FF0000",
-                fillOpacity: 0.25,
-                map: api.map
+            obj.drawing.polygon = new window.google.maps.Polygon({
+                map             : map,
+                paths           : path,
+                strokeColor     : "#FF0000",
+                strokeOpacity   : 0.8,
+                strokeWeight    : 3,
+                fillColor       : "#FF0000",
+                fillOpacity     : 0.25
             });
         }
     }
@@ -221,26 +228,25 @@ export class KmlViewer extends Component{
     }
 
     locatePlacemark(obj){
-        let api = this.props.googleMapsAPI;
-        if(!api) return;
-        if(!api.map) return;
+        let map = this.props.googleMap;
+        if(!map) return;
 
         if(obj.drawing.marker){
-            api.map.panTo(obj.drawing.marker.position)
+            map.panTo(obj.drawing.marker.position)
         }else 
         if(obj.drawing.polyline){
-            var bounds = new api.maps.LatLngBounds();
+            var bounds = new window.google.maps.LatLngBounds();
             obj.drawing.polyline.getPath().forEach(pt=>{
                 bounds.extend(pt)
             })
-            api.map.panToBounds(bounds)
+            map.panToBounds(bounds)
         }else
         if(obj.drawing.polygon){
-            var bounds = new api.maps.LatLngBounds();
+            var bounds = new window.google.maps.LatLngBounds();
             obj.drawing.polygon.getPath().forEach(pt=>{
                 bounds.extend(pt)
             })
-            api.map.panToBounds(bounds)
+            map.panToBounds(bounds)
         }
     }
 
