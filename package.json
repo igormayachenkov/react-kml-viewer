@@ -19,9 +19,7 @@
     "LICENSE",
     "README.md",
     "index.js",
-    "lib/KmlViewer.js",
-    "lib/KmlParser.js",
-    "lib/KmlViewer.css"
+    "lib"
   ],
   "devDependencies": {
     "@babel/cli": "^7.12.8",

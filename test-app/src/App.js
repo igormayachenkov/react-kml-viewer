@@ -1,7 +1,7 @@
 
 import React, { Component } from 'react';
 import './App.css';
-import { KmlViewer}  from './lib-src/KmlViewer.js'
+import KmlViewer from './lib-src/KmlViewer.js'
 import { Loader }    from "google-maps"
 
 import kmlSample from './test-data.js' 

@@ -1,17 +1,13 @@
-import React, { Component } from "react";
-import kmlParser from "./KmlParser";
-import './KmlViewer.css';
-
 //-----------------------------------------------------------------------------
 //
 // XMLDocument : The XMLDocument interface represents an XML document.
 //               https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument
-//  Document   : The Document interface represents any web page loaded in the browser.          
-//              https://developer.mozilla.org/en-US/docs/Web/API/Document
-// Element: Element is the most general base class from which all element objects (i.e. objects that represent elements) in a Document inherit.
-//              https://developer.mozilla.org/en-US/docs/Web/API/Element
-// Node: The DOM Node interface is an abstract base class upon which many other DOM API objects 
-//          https://developer.mozilla.org/en-US/docs/Web/API/Node
+// Document    : The Document interface represents any web page loaded in the browser.          
+//               https://developer.mozilla.org/en-US/docs/Web/API/Document
+// Element     : Element is the most general base class from which all element objects (i.e. objects that represent elements) in a Document inherit.
+//               https://developer.mozilla.org/en-US/docs/Web/API/Element
+// Node        : The DOM Node interface is an abstract base class upon which many other DOM API objects 
+//               https://developer.mozilla.org/en-US/docs/Web/API/Node
 // 
 // https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html#when-to-use-derived-state
 // https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change
@@ -21,9 +17,12 @@ import './KmlViewer.css';
 //  kmlText  |  kmlFile
 //  googleMap : window.google must be defined!
 //  
+import React, { Component } from "react"
+import {parseFromDOMDocument} from "./parser"
+import * as KML from './kml'
+import './KmlViewer.css'
 
-
-export class KmlViewer extends Component{
+export default class KmlViewer extends Component{
     constructor(){
         super();
         // State
@@ -54,7 +53,7 @@ export class KmlViewer extends Component{
             let domDocument = parser.parseFromString(kmlText,"text/xml");
 
             // Parse: DOM Document => JavaScript object
-            let data = kmlParser.parseFromDOMDocument(domDocument)
+            let data = parseFromDOMDocument(domDocument)
     
             return {
                 error       : null,  
@@ -96,16 +95,13 @@ export class KmlViewer extends Component{
     renderPlacemark(obj, key){
         // Geometry type
         let geotype = 'no geometry';
-        if(obj.point){
+        if(obj.geometry instanceof KML.Point){
             geotype = 'Point'
         }
-        if(obj.lineString){
+        if(obj.geometry instanceof KML.LineString){
             geotype = 'LineString'
         }
-        if(obj.lineRing){
-            geotype = 'LineRing'
-        }
-        if(obj.polygon){
+        if(obj.geometry instanceof KML.Polygon){
             geotype = 'Polygon'
         }
         // Selected
@@ -163,9 +159,11 @@ export class KmlViewer extends Component{
     createDrawing(obj,map){
         //console.log('Create drawing');
         obj.drawing = {}
+        let geometry = obj.geometry;
+        if(!geometry) return;
 
-        if(obj.point){
-            let coord = obj.point.coordinates;
+        if(geometry instanceof KML.Point){
+            let coord = geometry.coordinates;
             let pos = {lat:coord[1], lng:coord[0]}
 
             obj.drawing.marker = new window.google.maps.Marker({
@@ -175,8 +173,8 @@ export class KmlViewer extends Component{
             });
         }
 
-        if(obj.lineString){
-            let coord = obj.lineString.coordinates; // verified by KmlParser
+        if(geometry instanceof KML.LineString){
+            let coord = geometry.coordinates; // verified by KmlParser
             let path = coord.map(x=>({lat:x[1], lng:x[0]}));
 
             obj.drawing.polyline = new window.google.maps.Polyline({ 
@@ -189,8 +187,8 @@ export class KmlViewer extends Component{
             })
         }
 
-        if(obj.polygon){
-            let coord = obj.polygon.outerBoundaryIs.linearRing.coordinates; // verified by KmlParser
+        if(geometry instanceof KML.Polygon){
+            let coord = geometry.outerCoordinates; // verified by KmlParser
             let path = coord.map(x=>({lat:x[1], lng:x[0]}));
 
             obj.drawing.polygon = new window.google.maps.Polygon({

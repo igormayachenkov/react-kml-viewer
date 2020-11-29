@@ -9,6 +9,13 @@
 //          let domDocument = parser.parseFromString(props.kmlText,"text/xml");
 //          let obj = kmlParser.parseFromDOMDocument(domDocument)
 //           
+// parseFromString(kmlString,options)
+// options: { 
+//      domParser : custom DOMParser to work outside a browser 
+//      parseStyles: true/false 
+//      includeXmlElement: true/false - add xmlElement field to each object 
+//}
+//
 // Parsed data node format:
 // {
 //   //   id          : Number - inique number generated during parsing
@@ -22,7 +29,9 @@
 //      lineString  : Object
 //      polygon     : Object
 //  }
-exports.parseFromDOMDocument = function(domDocument){
+import * as KML from './kml'
+
+export function parseFromDOMDocument(domDocument){
     console.log('KmlParcer.parseFromDOMDocument')
 
     // Verify structure: kml/Document
@@ -114,62 +123,46 @@ const placemarkChildParcers = {
     'name'      : parseName,
 
     'Point'     : (parent,element)=>{ 
-        let obj = parseElement(element,geometryChildParcers)
-        // Verify
+        let obj = new KML.Point()
+        // Coordinates
+        let elementCoordinates = getChildByTagName(element,'coordinates')
+        if(!elementCoordinates) throw new ParsingError('Point without "coordinates" element')
+        obj.coordinates = parseCoordinates(elementCoordinates)
         if(!obj.coordinates || obj.coordinates.length===0) throw new ParsingError("Point with empty coordinates")
         obj.coordinates = obj.coordinates[0]
         // Add to the parent
-        parent.point = obj; 
+        if(parent.geometry) throw new ParsingError("More then one Geometry in Placemark")
+        parent.geometry = obj; 
     },
 
     'LineString': (parent,element)=>{ 
-        let obj = parseElement(element,geometryChildParcers)
-        // Verify
+        let obj = new KML.LineString()
+        // Coordinates
+        let elementCoordinates = getChildByTagName(element,'coordinates')
+        if(!elementCoordinates) throw new ParsingError('LineString without "coordinates" element')
+        obj.coordinates = parseCoordinates(elementCoordinates)
         if(!obj.coordinates || obj.coordinates.length===0) throw new ParsingError("LineString with empty coordinates")
         // Add to the parent
-        parent.lineString = obj;
+        if(parent.geometry) throw new ParsingError("More then one Geometry in Placemark")
+        parent.geometry = obj; 
     },
 
     'Polygon'   : (parent,element)=>{ 
-        let obj = parseElement(element,geometryChildParcers)
-        // Verify
-        if(!obj.outerBoundaryIs) throw new ParsingError("Polygon with empty outerBoundaryIs")
+        let obj = new KML.Polygon();//parseElement(element,geometryChildParcers)
+        // outer
+        let elementOuter = getChildByTagName(element,'outerBoundaryIs')
+        if(!elementOuter) throw new ParsingError('Polygon without "outerBoundaryIs" element')
+        let elementLinearRing = getChildByTagName(elementOuter,'LinearRing')
+        if(!elementLinearRing) throw new ParsingError('Polygon.outerBoundaryIs without "LinearRing" element')
+        let elementCoordinates = getChildByTagName(elementLinearRing,'coordinates')
+        if(!elementCoordinates) throw new ParsingError('Polygon.outerBoundaryIs.LinnearRing without "coordinates" element')
+        let coordinates = parseCoordinates(elementCoordinates)
+        if(!coordinates || coordinates.length===0) throw new ParsingError("Polygon.outerBoundaryIs.LinnearRing with empty coordinates")
+        obj.outerCoordinates = coordinates
         // Add to the parent
-        parent.polygon = obj; 
-    },
-}
-
-// GEOMETRY CHILDREN
-const geometryChildParcers = {
-
-    'outerBoundaryIs'   : (parent,element)=>{ 
-        let obj = parseElement(element,geometryChildParcers)
-        // Veerify
-        if(!obj.linearRing) throw new ParsingError("outerBoundaryIs without LinearRing")
-        // Add to the parent
-        parent.outerBoundaryIs = obj; 
-    },
-
-    'innerBoundaryIs'   : (parent,element)=>{ 
-        let obj = parseElement(element,geometryChildParcers)
-        // Veerify
-        if(!obj.linearRing) throw new ParsingError("innerBoundaryIs without LinearRing")
-        // Add to the parent
-        if(!parent.innerBoundaryIs) parent.innerBoundaryIs=[];
-        parent.innerBoundaryIs.push( obj ); 
-    },
-
-    'LinearRing'        : (parent,element)=>{ 
-        let obj = parseElement(element,geometryChildParcers) 
-        // Verify
-        if(!obj.coordinates) throw new ParsingError("LinearRing without cordinates")
-        // Add to the parent
-        parent.linearRing = obj
-    },
-
-    'coordinates'       : (parent,element)=>{ 
-        parent.coordinates     = parseCoordinates(element) 
-    },
+        if(parent.geometry) throw new ParsingError("More then one Geometry in Placemark")
+        parent.geometry = obj; 
+    }
 }
 
 // UTILS
