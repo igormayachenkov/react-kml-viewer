@@ -75,21 +75,26 @@ export default class KmlViewer extends Component{
     }
 
     // RENDER DATA
-    renderFolder(obj, key){
-        // Placemarks
-        var contentHTML = obj.placemarks ?
-        obj.placemarks.map((pm,i) => this.renderPlacemark(pm, i)) : null;
-    
-        // Folders
-        var foldersHTML = obj.folders ?
-            obj.folders.map((folder,i) => this.renderFolder(folder, i)) : null;
+    renderContainer(obj, key){
+        var rows=[]
 
+        if(obj.features){
+            obj.features.forEach((feature,i)=>{
+                if(feature instanceof KML.Container){
+                    rows.push(this.renderContainer(feature,i))
+                }else if(feature instanceof KML.Placemark){
+                    rows.push(this.renderPlacemark(feature,i))
+                }
+            })
+        }
         // Render
-        return (<div key={key} className="kml-viewer-folder"> 
-            <div className="kml-viewer-name">{obj.name}</div>
-            {contentHTML}
-            {foldersHTML}
-        </div>);
+        // if(key==0)
+        //     return <>{rows}</>
+        // else
+            return (<div key={key} className="kml-viewer-folder"> 
+                <div className="kml-viewer-name">{obj.name}</div>
+                {rows}
+            </div>);
     }
 
     renderPlacemark(obj, key){
@@ -121,7 +126,7 @@ export default class KmlViewer extends Component{
         if(!data) 
             return null;
 
-        return this.renderFolder(data, 0)
+        return this.renderContainer(data, 0)
     }
 
     render() {

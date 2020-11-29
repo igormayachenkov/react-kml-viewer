@@ -1,12 +1,17 @@
 // KML types
 
 export class Feature{
-    //name = null;
+    constructor(){
+        this.name = null
+    }
 }
 
 // CONTAINER
 export class Container extends Feature{
-    //features = []
+    constructor(){
+        super()
+        this.features=[]
+    }
 }
 export class Document extends Container{
 }
