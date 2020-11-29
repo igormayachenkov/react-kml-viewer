@@ -1,6 +1,6 @@
 {
   "name": "react-kml-viewer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Parse and view KML-data",
   "main": "index.js",
   "repository": {
@@ -12,7 +12,7 @@
   "dependencies": {},
   "directories": {},
   "scripts": {
-    "build": "cp test-app/src/lib-src/*.css lib/ && cp test-app/src/lib-src/kml.js lib/ &&  cp test-app/src/lib-src/parser.js lib/ && ./node_modules/.bin/babel test-app/src/lib-src/KmlViewer.js -d lib"
+    "build": "cp test-app/src/lib-src/*.css lib/ && ./node_modules/.bin/babel test-app/src/lib-src/*.js -d lib"
   },
   "files": [
     "package.json",

@@ -1,33 +1,34 @@
 // KML types
 
 export class Feature{
-    name = null;
+    //name = null;
 }
 
+// CONTAINER
 export class Container extends Feature{
-    features = []
+    //features = []
+}
+export class Document extends Container{
+}
+export class Folder extends Container{
 }
 
+// PLACEMARK
 export class Placemark extends Feature{
-    geometry = null
+    //geometry = null
 }
 
-// Geometries
-// <!-- Geometry id="ID" -->
-//                                               <!-- Point,LineString,LinearRing,
-//                                                Polygon,MultiGeometry,Model,
-//                                                gx:Track -->
-// <!-- /Geometry -->
+// GEOMETRY (Point,LineString,LinearRing,Polygon,MultiGeometry,Model,gx:Track)
 export class Geometry{
 }
 
 export class Point extends Geometry{
-    coordinates = null
+    //coordinates = null
 }
 export class LineString extends Geometry{
-    coordinates = null
+    //coordinates = null
 }
 export class Polygon extends Geometry{
-    outerCoordinates = null // outer coordinates
-    innerCoordinates = [] // inner coordinates
+    //outerCoordinates = null // outer coordinates
+    //innerCoordinates = [] // inner coordinates
 }

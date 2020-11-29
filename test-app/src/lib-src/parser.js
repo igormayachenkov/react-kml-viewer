@@ -37,12 +37,14 @@ export function parseFromDOMDocument(domDocument){
     // Verify structure: kml/Document
     let kml = getChildByTagName(domDocument,"kml");
     if(!kml) throw String('KML format error: Element "kml" is not found');
-    let document = getChildByTagName(kml,"Document");    //domDocument.getElementsByTagName("Document")[0]
-    if(!document) throw String('KML format error: Element "Document" is not found');
+    let elementDocument = getChildByTagName(kml,"Document");    //domDocument.getElementsByTagName("Document")[0]
+    if(!elementDocument) throw String('KML format error: Element "Document" is not found');
     
     // Parce document as a container
  //   idBase = 0;
-    return parseElement(document, containerChildParcers);
+    let obj = {}
+    parseElementChildren(obj, elementDocument, containerChildParcers);
+    return obj
 }
 //var idBase = 0; // parallel parcing will make wrong ids
 
@@ -53,8 +55,7 @@ class ParsingError{
 }
 
 // COMMON PARSER
-const parseElement = function(element,childParcers){
-    let obj = {}
+const parseElementChildren = function(obj,element,childParcers){
     if (element.children){
         for(let i=0; i<element.children.length;i++){
             let child = element.children[i];
@@ -63,7 +64,6 @@ const parseElement = function(element,childParcers){
                 childParcer(obj,child);
         }
     }
-    return obj;
 }
 // SPECIAL PARSERS
 const parseName = function(parent,element){
@@ -99,7 +99,8 @@ const containerChildParcers = {
     'name'      : parseName,
 
     'Folder'    : (parent,element)=>{ 
-        let obj = parseElement(element,containerChildParcers)
+        let obj = new KML.Folder()
+        parseElementChildren(obj,element,containerChildParcers)
         // Add to the parent
         if(!parent.folders) parent.folders=[];
         parent.folders.push( obj ); 
@@ -107,7 +108,8 @@ const containerChildParcers = {
 
     'Placemark' : (parent,element)=>{ 
         try{
-            let obj = parseElement(element,placemarkChildParcers);
+            let obj = new KML.Placemark()
+            parseElementChildren(obj,element,placemarkChildParcers);
         
             // Add to the parent
             if(!parent.placemarks)  parent.placemarks=[];
@@ -148,7 +150,7 @@ const placemarkChildParcers = {
     },
 
     'Polygon'   : (parent,element)=>{ 
-        let obj = new KML.Polygon();//parseElement(element,geometryChildParcers)
+        let obj = new KML.Polygon();
         // outer
         let elementOuter = getChildByTagName(element,'outerBoundaryIs')
         if(!elementOuter) throw new ParsingError('Polygon without "outerBoundaryIs" element')
