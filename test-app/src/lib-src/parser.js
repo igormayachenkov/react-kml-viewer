@@ -37,12 +37,12 @@ export function parseFromDOMDocument(domDocument){
     // Verify structure: kml/Document
     let kml = getChildByTagName(domDocument,"kml");
     if(!kml) throw String('KML format error: Element "kml" is not found');
-    //let elementDocument = getChildByTagName(kml,"Document");    //domDocument.getElementsByTagName("Document")[0]
-    //if(!elementDocument) throw String('KML format error: Element "Document" is not found');
+    if(!kml.children || kml.children.length<1) throw String('No children within <kml> tag')
+    if(kml.children.length>1) throw String('Only a single root feature allowed within <kml> tag')
     
-    // Parce document as a container
- //   idBase = 0;
-    return parseContainer(kml)
+    // Parce root as a container
+    let root = kml.children[0]
+    return parseContainer(root)
 }
 //var idBase = 0; // parallel parcing will make wrong ids
 
