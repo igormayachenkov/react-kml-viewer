@@ -18,7 +18,7 @@
 //  googleMap : window.google must be defined!
 //  
 import React, { Component } from "react"
-import {parseFromDOMDocument} from "./parser"
+import {parseFromString} from "./parser"
 import * as KML from './kml'
 import './KmlViewer.css'
 
@@ -28,50 +28,61 @@ export default class KmlViewer extends Component{
         // State
         this.state = { 
             error       : 'data is empty',
+            kmlText     : null,
             data        : null,
-            dataLength  : 0
+            googleMap   : null
         }
     }
     
     static getDerivedStateFromProps(props, state) {
-        console.log('KML.getDerivedStateFromProps',state, props)
+        let stateChanges = {}
+
+        // UPDATE KML DATA?
         let kmlText = props.kmlText
+        if(state.kmlText !== kmlText){ // memoization 
+            stateChanges.kmlText= kmlText
+            try{
+                // Verify KML text
+                if(!kmlText) throw String('data is empty')
 
-        try{
-            // Verify KML text
-            if(!kmlText) throw 'kmlText is undefined'
-            if(state.dataLength == kmlText.length) return null; // memoization 
+                // UPDATE DATA
+                console.warn('KmlViewer: update KML')
 
-            // UPDATE DATA
-
-            // Clear old
-            KmlViewer.removeAllDrawings(state.data);
-
-            // Parse: string => DOM Document
-            let parser = new DOMParser();
-            if(!parser) throw 'DOMParser is unsupported'
-            let domDocument = parser.parseFromString(kmlText,"text/xml");
-
-            // Parse: DOM Document => JavaScript object
-            let data = parseFromDOMDocument(domDocument)
-    
-            return {
-                error       : null,  
-                data        : data,
-                dataLength  : kmlText.length
-            }
-        }catch(error){
-            return {
-                error : error.toString(), 
-                data  : null,
-                dataLength  : 0
+                // Parse: DOM Document => JavaScript object
+                let data = parseFromString(kmlText)
+        
+                // Set state changes
+                stateChanges.error  = null;  
+                stateChanges.data   = data;
+                
+            }catch(error){
+                stateChanges.error = error.toString()
+                stateChanges.data  = null
             }
         }
+
+        // SAVE MAP IN THE STATE
+        if(state.googleMap !== props.googleMap)
+            stateChanges.googleMap = props.googleMap
+
+        // UPDATE MAP DRAWINGS?
+        if(stateChanges.data!==undefined || stateChanges.googleMap!==undefined ){
+            console.warn('UPDATE DRAWINGS REQUIRED')
+            // Remove old
+            if(state.data) state.data.updateMapDrawing(null)
+            // Create new
+            let dataNew = stateChanges.data?stateChanges.data:state.data
+            if(dataNew) dataNew.updateMapDrawing(props.googleMap)
+        }
+
+        console.log('KmlViewer.getDerivedStateFromProps',stateChanges,state, props)
+
+        return stateChanges;
     }
 
     componentWillUnmount(){
-        console.log('KML.componentWillUnmount');
-        KmlViewer.removeAllDrawings(this.state.data)
+        console.log('KmlViewer.componentWillUnmount');
+        if(this.state.data) this.state.data.updateMapDrawing(null)
     }
 
     // RENDER DATA
@@ -88,13 +99,10 @@ export default class KmlViewer extends Component{
             })
         }
         // Render
-        // if(key==0)
-        //     return <>{rows}</>
-        // else
-            return (<div key={key} className="kml-viewer-folder"> 
-                <div className="kml-viewer-name">{obj.name}</div>
-                {rows}
-            </div>);
+        return (<div key={key} className="kml-viewer-folder"> 
+            <div className="kml-viewer-name">{obj.name}</div>
+            {rows}
+        </div>);
     }
 
     renderPlacemark(obj, key){
@@ -111,14 +119,12 @@ export default class KmlViewer extends Component{
         }
         // Selected
         let cls = obj.isSelected ? 'kml-viewer-placemark selected' : 'kml-viewer-placemark';
-        let locate = obj.isSelected ? 
-            <i className="kml-viewer-locate" onClick={e=>{e.stopPropagation();this.locatePlacemark(obj)}}></i> : null
         // Render
         return (
         <div key={key} className={cls} onClick={()=>this.onPlacemarkClick(obj)}>
             <span className="kml-viewer-geotype" tag={geotype}>{geotype}</span>
             <span className="kml-viewer-geoname">{obj.name}</span>
-            {locate}
+            <i className="kml-viewer-locate" onClick={e=>{e.stopPropagation();this.locatePlacemark(obj)}}></i>
         </div>);
     }
     renderData(){
@@ -130,7 +136,7 @@ export default class KmlViewer extends Component{
     }
 
     render() {
-        console.log('KML.render')
+        console.log('KmlViewer.render')
 
         if(this.state.error){
             var htmlError = <div className="kml-viewer-error">{this.state.error}</div>;
@@ -149,108 +155,13 @@ export default class KmlViewer extends Component{
     onPlacemarkClick(obj){
         // Toggle selected
         obj.isSelected = obj.isSelected?false:true;
-        this.updateMapDrawing(obj);
-        // Refresh
+        obj.updateMapDrawing(this.state.googleMap);
+        // Refresh ui
         this.setState({data:this.state.data})
-    }
-    updateMapDrawing(obj){
-        let map = this.props.googleMap;
-        if(!map) return;
-        if( obj.isSelected && !obj.drawing) this.createDrawing(obj, map);
-        if(!obj.isSelected &&  obj.drawing) KmlViewer.removeDrawing(obj);
-    }
-
-    // MAP DRAWINGS
-    createDrawing(obj,map){
-        //console.log('Create drawing');
-        obj.drawing = {}
-        let geometry = obj.geometry;
-        if(!geometry) return;
-
-        if(geometry instanceof KML.Point){
-            let coord = geometry.coordinates;
-            let pos = {lat:coord[1], lng:coord[0]}
-
-            obj.drawing.marker = new window.google.maps.Marker({
-                map     : map,
-                position: pos, 
-                title   : obj.name
-            });
-        }
-
-        if(geometry instanceof KML.LineString){
-            let coord = geometry.coordinates; // verified by KmlParser
-            let path = coord.map(x=>({lat:x[1], lng:x[0]}));
-
-            obj.drawing.polyline = new window.google.maps.Polyline({ 
-                map             : map,
-                path            : path,
-                geodesic        : true,
-                strokeColor     : '#FF0000',
-                strokeOpacity   : 1.0,
-                strokeWeight    : 5
-            })
-        }
-
-        if(geometry instanceof KML.Polygon){
-            let coord = geometry.outerCoordinates; // verified by KmlParser
-            let path = coord.map(x=>({lat:x[1], lng:x[0]}));
-
-            obj.drawing.polygon = new window.google.maps.Polygon({
-                map             : map,
-                paths           : path,
-                strokeColor     : "#FF0000",
-                strokeOpacity   : 0.8,
-                strokeWeight    : 3,
-                fillColor       : "#FF0000",
-                fillOpacity     : 0.25
-            });
-        }
-    }
-
-    static removeDrawing(obj){
-        //console.log('Remove drawing');
-        if(obj.drawing){
-            if(obj.drawing.marker)      obj.drawing.marker.setMap(null);
-            if(obj.drawing.polyline)    obj.drawing.polyline.setMap(null);
-            if(obj.drawing.polygon)     obj.drawing.polygon.setMap(null);
-            obj.drawing = null
-        }
-    }
-
-    static removeDrawingRecursive(obj){
-        KmlViewer.removeDrawing(obj)
-        if(obj.placemarks) obj.placemarks.forEach(item=>KmlViewer.removeDrawingRecursive(item));
-        if(obj.folders)    obj.folders.forEach   (item=>KmlViewer.removeDrawingRecursive(item));
-    }
-
-    static removeAllDrawings(data){
-        console.log('KML.removeAllDrawings',data);
-        if(data)
-            KmlViewer.removeDrawingRecursive(data)
     }
 
     locatePlacemark(obj){
-        let map = this.props.googleMap;
-        if(!map) return;
-
-        if(obj.drawing.marker){
-            map.panTo(obj.drawing.marker.position)
-        }else 
-        if(obj.drawing.polyline){
-            var bounds = new window.google.maps.LatLngBounds();
-            obj.drawing.polyline.getPath().forEach(pt=>{
-                bounds.extend(pt)
-            })
-            map.panToBounds(bounds)
-        }else
-        if(obj.drawing.polygon){
-            var bounds = new window.google.maps.LatLngBounds();
-            obj.drawing.polygon.getPath().forEach(pt=>{
-                bounds.extend(pt)
-            })
-            map.panToBounds(bounds)
-        }
+        obj.locate(this.state.googleMap)
     }
 
 }

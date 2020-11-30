@@ -27,7 +27,7 @@
     float:right;
     width: 1em;
     height: 1em;
-    /*background: url(/images/locate.svg) 100% 100% no-repeat;*/
+    background: url(locate.svg) 100% 100% no-repeat;
     background-size: cover;
     cursor: pointer;
 }

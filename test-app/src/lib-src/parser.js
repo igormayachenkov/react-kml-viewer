@@ -31,9 +31,14 @@
 //  }
 import * as KML from './kml'
 
-export function parseFromDOMDocument(domDocument){
-    console.log('KmlParcer.parseFromDOMDocument')
+export function parseFromString(kmlText){
+    console.log('KmlParcer.parseFromString')
 
+    // Parse: string => DOM Document
+    let domParser = new DOMParser();
+    if(!domParser) throw 'DOMParser is unsupported'
+    let domDocument = domParser.parseFromString(kmlText,"text/xml");
+    
     // Verify structure: kml/Document
     let kml = getChildByTagName(domDocument,"kml");
     if(!kml) throw String('KML format error: Element "kml" is not found');
