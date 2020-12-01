@@ -14,8 +14,8 @@
 
 // PROPS:
 //
-//  kmlText  |  kmlFile
-//  googleMap : window.google must be defined!
+//  kml : KML data object
+//  map : Google map (window.google must be defined!)
 //  
 import React, { Component } from "react"
 //import {parseFromString} from "./parser"
@@ -27,10 +27,8 @@ export default class KmlViewer extends Component{
         super();
         // State
         this.state = { 
-            error       : 'data is empty',
-            kmlText     : null,
-            data        : null,
-            googleMap   : null
+            kml   : null,
+            map   : null
         }
     }
     
@@ -38,51 +36,32 @@ export default class KmlViewer extends Component{
         let stateChanges = {}
 
         // UPDATE KML DATA?
-        let kmlText = props.kmlText
-        if(state.kmlText !== kmlText){ // memoization 
-            stateChanges.kmlText= kmlText
-            try{
-                // Verify KML text
-                if(!kmlText) throw String('data is empty')
-
-                // UPDATE DATA
-                console.warn('KmlViewer: update KML')
-
-                // Parse: DOM Document => JavaScript object
-                let data = KML.parseFromString(kmlText)
-        
-                // Set state changes
-                stateChanges.error  = null;  
-                stateChanges.data   = data;
-                
-            }catch(error){
-                stateChanges.error = error.toString()
-                stateChanges.data  = null
-            }
+        if(state.kml !== props.kml){ // memoization 
+            stateChanges.kml = props.kml
         }
 
         // SAVE MAP IN THE STATE
-        if(state.googleMap !== props.googleMap)
-            stateChanges.googleMap = props.googleMap
+        if(state.map !== props.map) // memoization
+            stateChanges.map = props.map
 
         // UPDATE MAP DRAWINGS?
-        if(stateChanges.data!==undefined || stateChanges.googleMap!==undefined ){
+        if(stateChanges.kml!==undefined || stateChanges.map!==undefined ){
             console.warn('UPDATE DRAWINGS REQUIRED')
             // Remove old
-            if(state.data) state.data.updateMapDrawing(null)
-            // Create new
-            let dataNew = stateChanges.data?stateChanges.data:state.data
-            if(dataNew) dataNew.updateMapDrawing(props.googleMap)
+            if(state.kml) state.kml.updateMapDrawing(null)
+            // Create new 
+            let kmlNew = stateChanges.kml ? stateChanges.kml : state.kml
+            if(kmlNew) kmlNew.updateMapDrawing(props.map)
         }
 
-        console.log('KmlViewer.getDerivedStateFromProps',stateChanges,state, props)
+        console.log('KmlViewer.getDerivedStateFromProps',stateChanges)
 
         return stateChanges;
     }
 
     componentWillUnmount(){
         console.log('KmlViewer.componentWillUnmount');
-        if(this.state.data) this.state.data.updateMapDrawing(null)
+        if(this.state.kml) this.state.kml.updateMapDrawing(null)
     }
 
     // RENDER DATA
@@ -128,23 +107,18 @@ export default class KmlViewer extends Component{
         </div>);
     }
     renderData(){
-        let data = this.state.data;
-        if(!data) 
+        let kml = this.state.kml;
+        if(!kml) 
             return null;
 
-        return this.renderContainer(data, 0)
+        return this.renderContainer(kml, 0)
     }
 
     render() {
         console.log('KmlViewer.render')
 
-        if(this.state.error){
-            var htmlError = <div className="kml-viewer-error">{this.state.error}</div>;
-        }
-
         return (
             <div className='kml-viewer'>
-                {htmlError}
                 {this.renderData()}
             </div>
         );
@@ -155,13 +129,13 @@ export default class KmlViewer extends Component{
     onPlacemarkClick(obj){
         // Toggle selected
         obj.isSelected = obj.isSelected?false:true;
-        obj.updateMapDrawing(this.state.googleMap);
+        obj.updateMapDrawing(this.state.map);
         // Refresh ui
-        this.setState({data:this.state.data})
+        this.setState({kml : this.state.kml})
     }
 
     locatePlacemark(obj){
-        obj.locate(this.state.googleMap)
+        obj.locate(this.state.map)
     }
 
 }

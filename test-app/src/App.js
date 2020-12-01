@@ -2,6 +2,8 @@
 import React, { Component } from 'react';
 import './App.css';
 import KmlViewer from './lib-src/KmlViewer.js'
+import * as KML from './lib-src/kml.js'
+
 import { Loader }    from "google-maps"
 
 import kmlSample from './test-data.js' 
@@ -11,12 +13,41 @@ class App extends Component{
         super()
         this.state={
             mapApiStatus : 'loading...',
-            googleMap    : null 
+            map    : null,
+            kml          : null
         }
     }
 
     componentDidMount(){
+        // Load kml
+        this.parseKml(kmlSample)
+
+        // Load map
         this.loadGoogleMapsAPI()
+    }
+    parseKml(kmlText){
+        try{
+            // Verify KML text
+            if(!kmlText) throw String('data is empty')
+
+            // UPDATE DATA
+            console.warn('App: update KML')
+
+            // Parse: text => JavaScript object
+            let kml = KML.parseFromString(kmlText)
+    
+            // Set state changes
+            this.setState({
+                error : null,  
+                kml   : kml
+            })
+        }catch(error){
+            this.setState({
+                error : error.toString(),
+                kml   : null
+            })
+        }
+
     }
 
     loadGoogleMapsAPI(){
@@ -38,7 +69,7 @@ class App extends Component{
                 
                 this.setState({
                     mapApiStatus : 'loaded',
-                    googleMap    : map     
+                    map    : map     
                 })
 
             },2000);//timeout
@@ -49,16 +80,21 @@ class App extends Component{
     render(){
         console.log('APP.render')
 
-        // if(!this.state.googleMap) return (
+        // if(!this.state.map) return (
         //     <div className='loading'>The map is loading...</div>
         // );
+        if(this.state.error){
+            var htmlError = <div className="kml-viewer-error">{this.state.error}</div>;
+        }
+
 
         return (
             <div className="App">
             
             <div className="layout-info">
                 <div>Google maps API status: {this.state.mapApiStatus}</div>
-                <KmlViewer kmlText={kmlSample} googleMap={this.state.googleMap}/> 
+                {htmlError}
+                <KmlViewer kml={this.state.kml} map={this.state.map}/> 
             </div>
 
             <div className="layout-map">
