@@ -18,7 +18,7 @@
 //  googleMap : window.google must be defined!
 //  
 import React, { Component } from "react"
-import {parseFromString} from "./parser"
+//import {parseFromString} from "./parser"
 import * as KML from './kml'
 import './KmlViewer.css'
 
@@ -49,7 +49,7 @@ export default class KmlViewer extends Component{
                 console.warn('KmlViewer: update KML')
 
                 // Parse: DOM Document => JavaScript object
-                let data = parseFromString(kmlText)
+                let data = KML.parseFromString(kmlText)
         
                 // Set state changes
                 stateChanges.error  = null;  
