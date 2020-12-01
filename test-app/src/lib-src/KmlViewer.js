@@ -14,7 +14,8 @@
 
 // PROPS:
 //
-//  kml : KML data object
+//  kmlText : KML data object
+//  map     : Google Map
 //  
 import React, { Component } from "react"
 //import {parseFromString} from "./parser"
@@ -26,9 +27,74 @@ export default class KmlViewer extends Component{
         super();
         // State
         this.state = { 
+            kmlText : null,
+            error   : null,
+            kml     : null,
+            map     : null
         }
     }
-    
+
+    static getDerivedStateFromProps(props, state) {
+        let stateChanges = {}
+
+        // UPDATE KML DATA?
+        let kmlText = props.kmlText
+        if(state.kmlText !== kmlText){ // memoization 
+            stateChanges.kmlText= kmlText
+            try{
+                // Verify KML text
+                if(!kmlText) throw String('data is empty')
+
+                // UPDATE DATA
+                console.warn('KmlViewer: update KML')
+
+                // Parse: DOM Document => JavaScript object
+                let kml = new KML.Kml(props.kmlOptions)
+                kml.parseFromString(kmlText)
+
+                // Set state changes
+                stateChanges.error  = null;  
+                stateChanges.kml    = kml;
+
+            }catch(error){
+                stateChanges.error = error.toString()
+                stateChanges.kml  = null
+            }
+        }
+
+        // SAVE MAP IN THE STATE
+        if(state.map !== props.map) // memoization
+            stateChanges.map = props.map
+
+        // UPDATE MAP DRAWINGS?
+        if(stateChanges.kml!==undefined || stateChanges.map!==undefined ){
+            console.warn('UPDATE DRAWINGS REQUIRED')
+            // Remove old map drawings
+            if(state.kml) 
+                state.kml.setMap(null)
+            // Create new map drawings
+            let kmlNew = stateChanges.kml ? stateChanges.kml : state.kml
+            if(kmlNew) kmlNew.setMap(props.map)
+        }
+
+        console.log('KmlViewer.getDerivedStateFromProps',stateChanges)
+
+        return stateChanges;
+    }
+
+    componentWillUnmount(){
+        if(this.state.kml) 
+            this.state.kml.setMap(null)
+    }
+
+    deselectAll(){
+        let kml = this.state.kml
+        if(kml){
+            kml.deselectAll()
+            this.setState({kml:kml})
+        }
+    }
+
     // RENDER DATA
     renderContainer(obj, key){
         var rows=[]
@@ -72,7 +138,7 @@ export default class KmlViewer extends Component{
         </div>);
     }
     renderData(){
-        let kml = this.props.kml;
+        let kml = this.state.kml;
         if(!kml) 
             return null;
 
@@ -81,9 +147,15 @@ export default class KmlViewer extends Component{
 
     render() {
         console.log('KmlViewer.render')
+        if(this.state.error)
+            var htmlError = <div className="kml-viewer-error">{this.state.error}</div>;
+        if(this.state.kml)
+            var btnDeselectAll= <div><button onClick={()=>{this.deselectAll()}}>Deselect all</button></div>
 
         return (
             <div className='kml-viewer'>
+                {btnDeselectAll}
+                {htmlError}
                 {this.renderData()}
             </div>
         );

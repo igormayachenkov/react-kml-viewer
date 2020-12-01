@@ -12,53 +12,14 @@ class App extends Component{
     constructor(){
         super()
         this.state={
-            mapApiStatus : 'loading...',
-            map    : null,
-            kml          : null
+            map          : null,
+            kmlText      : kmlSample
         }
     }
 
     componentDidMount(){
-        // Load kml
-        this.parseKml(kmlSample)
-
         // Load map
         this.loadGoogleMapsAPI()
-    }
-
-    parseKml(kmlText){
-        try{
-            // Verify KML text
-            if(!kmlText) throw String('data is empty')
-
-            // UPDATE DATA
-            console.warn('App: parse KML')
-
-            // Parse: text => JavaScript object
-            //let kml = new KML.Kml({singleSelection:true})
-            let kml = new KML.Kml({singleSelection:false})
-            kml.parseFromString(kmlText)
-
-            // Remove old map drawings
-            if(this.state.kml) 
-                this.state.kml.setMap(null)
-
-            // Create new map drawings
-            if(this.state.map)
-                kml.setMap(this.state.map)
-    
-            // Set state changes
-            this.setState({
-                error : null,  
-                kml   : kml
-            })
-        }catch(error){
-            this.setState({
-                error : error.toString(),
-                kml   : null
-            })
-        }
-
     }
 
     loadGoogleMapsAPI(){
@@ -78,13 +39,7 @@ class App extends Component{
                 );
                 console.log('The map has been created')
 
-                // Create map drawings
-                if(this.state.kml)
-                    this.state.kml.setMap(map)
-
-                
                 this.setState({
-                    mapApiStatus : 'loaded',
                     map    : map     
                 })
 
@@ -92,33 +47,19 @@ class App extends Component{
     
         });
     }
-    deselectAll(){
-        let kml = this.state.kml
-        if(kml){
-            kml.deselectAll()
-            this.setState({kml:kml})
-        }
-    }
 
     render(){
         console.log('APP.render')
-
-        // if(!this.state.map) return (
-        //     <div className='loading'>The map is loading...</div>
-        // );
-        if(this.state.error){
-            var htmlError = <div className="kml-viewer-error">{this.state.error}</div>;
-        }
-
 
         return (
             <div className="App">
             
             <div className="layout-info">
-                <div>Google maps API status: {this.state.mapApiStatus}</div>
-                <div><button onClick={()=>{this.deselectAll()}}>Deselect all</button></div>
-                {htmlError}
-                <KmlViewer kml={this.state.kml} map={this.state.map}/> 
+                <div>KmlViewer:</div>
+                <KmlViewer 
+                    kmlText    = {this.state.kmlText} 
+                    kmlOptions = {{singleSelection:false}}
+                    map        = {this.state.map}/> 
             </div>
 
             <div className="layout-map">
