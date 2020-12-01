@@ -35,7 +35,9 @@ class App extends Component{
             console.warn('App: parse KML')
 
             // Parse: text => JavaScript object
-            let kml = KML.parseFromString(kmlText)
+            //let kml = new KML.Kml({singleSelection:true})
+            let kml = new KML.Kml({singleSelection:false})
+            kml.parseFromString(kmlText)
 
             // Remove old map drawings
             if(this.state.kml) 
@@ -90,6 +92,13 @@ class App extends Component{
     
         });
     }
+    deselectAll(){
+        let kml = this.state.kml
+        if(kml){
+            kml.deselectAll()
+            this.setState({kml:kml})
+        }
+    }
 
     render(){
         console.log('APP.render')
@@ -107,6 +116,7 @@ class App extends Component{
             
             <div className="layout-info">
                 <div>Google maps API status: {this.state.mapApiStatus}</div>
+                <div><button onClick={()=>{this.deselectAll()}}>Deselect all</button></div>
                 {htmlError}
                 <KmlViewer kml={this.state.kml} map={this.state.map}/> 
             </div>

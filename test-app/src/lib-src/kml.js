@@ -1,41 +1,60 @@
-// INTERFACE
-export function parseFromString(kmlText){
-    console.log('KML.parseFromString')
+// KML document container
 
-    // Parse: string => DOM Document
-    let domParser = new DOMParser();
-    if(!domParser) throw String('DOMParser is unsupported')
-    let domDocument = domParser.parseFromString(kmlText,"text/xml");
+export class Kml{
+    constructor(options){
+        this.options = options ? options : {}
+        this.root = null 
+        this.map  = null
+    }
     
-    // Verify structure: kml/Document
-    let kml = getChildByTagName(domDocument,"kml");
-    if(!kml) throw String('KML format error: Element "kml" is not found');
-    if(!kml.children || kml.children.length<1) throw String('No children within <kml> tag')
-    if(kml.children.length>1) throw String('Only a single root feature allowed within <kml> tag')
-    let root = kml.children[0]
-    if(root.tagName!=='Document') throw String('The root tag within <kml> must be <Document>')
-    
-    // Parce root as a Document
-    return new Document().parse(root)
+    parseFromString(kmlText){
+        console.log('KML.parseFromString')
+
+        // Parse: string => DOM Document
+        let domParser = new DOMParser();
+        if(!domParser) throw String('DOMParser is unsupported')
+        let domDocument = domParser.parseFromString(kmlText,"text/xml");
+        
+        // Verify structure: kml/Document
+        let kml = getChildByTagName(domDocument,"kml");
+        if(!kml) throw String('KML format error: Element "kml" is not found');
+        if(!kml.children || kml.children.length<1) throw String('No children within <kml> tag')
+        if(kml.children.length>1) throw String('Only a single root feature allowed within <kml> tag')
+        let root = kml.children[0]
+        if(root.tagName!=='Document') throw String('The root tag within <kml> must be <Document>')
+        
+        // Parce root as a Document
+        this.root = new Document(this).parse(root)
+    }
+
+    setMap(map){ 
+        this.map = map 
+        if(this.root) this.root.updateMapDrawing()
+    }
+
+    deselectAll(){
+        if(this.root)
+            this.root.deselectAll()
+    }
+
 }
 
 
 // KML types
 export class Feature{
-    constructor(){
+    constructor(kml){
+        this.kml  = kml
         this.name = null
-        this.map  = null 
     }
-    setMap(map){ 
-        this.map = map 
-    }
+    updateMapDrawing(){}
     locate(map){}
+    deselectAll(){}
 }
 
 // CONTAINER
 export class Container extends Feature{
-    constructor(){
-        super()
+    constructor(kml){
+        super(kml)
         this.features=[]
     }
     parse(element){
@@ -48,15 +67,15 @@ export class Container extends Feature{
                         break;
 
                     case 'Document':
-                        this.features.push(new Document().parse(elementChild))
+                        this.features.push(new Document(this.kml).parse(elementChild))
                         break;
 
                     case 'Folder':
-                        this.features.push(new Folder().parse(elementChild))
+                        this.features.push(new Folder(this.kml).parse(elementChild))
                         break;
 
                     case 'Placemark':
-                        this.features.push(new Placemark().parse(elementChild))
+                        this.features.push(new Placemark(this.kml).parse(elementChild))
                         break;
                     
                     default: break;
@@ -69,9 +88,12 @@ export class Container extends Feature{
     }
     
     // MAP DRAWING
-    setMap(map){
-        super.setMap(map)
-        this.features.forEach(f=>f.setMap(map))
+    updateMapDrawing(){
+        this.features.forEach(f=>f.updateMapDrawing())
+    }
+    // SELECTED STATE
+    deselectAll(){
+        this.features.forEach(f=>f.deselectAll())
     }
 }
 export class Document extends Container{
@@ -81,8 +103,8 @@ export class Folder extends Container{
 
 // PLACEMARK
 export class Placemark extends Feature{
-    constructor(){
-        super()
+    constructor(kml){
+        super(kml)
         this.geometry = null
         this.isSelected = false
     }
@@ -113,23 +135,26 @@ export class Placemark extends Feature{
         return this
     }
     
-    // MAP DRAWING
-    setSelected(selected){
-        this.isSelected = selected
-        this.updateMapDrawing()
-    }
-    setMap(map){
-        super.setMap(map)
-        this.updateMapDrawing()
-    }
+    // MAP DRAWING    
     updateMapDrawing(){
         if(this.geometry)
-            this.geometry.updateMapDrawing(this.map, this.name, this.isSelected);
+            this.geometry.updateMapDrawing(this.kml.map, this.name, this.isSelected);
     }
 
     locate(){
-        if(this.map && this.geometry)
-            this.geometry.locate(this.map)
+        if(this.kml.map && this.geometry)
+            this.geometry.locate(this.kml.map)
+    }
+
+    // SELECTED STATE
+    setSelected(selected){
+        if(selected && this.kml.options.singleSelection)
+            this.kml.deselectAll()
+        this.isSelected = selected
+        this.updateMapDrawing()
+    }
+    deselectAll(){
+        this.setSelected(false)
     }
 
 }

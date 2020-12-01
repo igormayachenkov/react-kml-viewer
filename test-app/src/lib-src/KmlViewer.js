@@ -76,7 +76,7 @@ export default class KmlViewer extends Component{
         if(!kml) 
             return null;
 
-        return this.renderContainer(kml, 0)
+        return this.renderContainer(kml.root, 0)
     }
 
     render() {
