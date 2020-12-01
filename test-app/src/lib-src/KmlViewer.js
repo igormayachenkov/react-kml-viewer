@@ -15,7 +15,6 @@
 // PROPS:
 //
 //  kml : KML data object
-//  map : Google map (window.google must be defined!)
 //  
 import React, { Component } from "react"
 //import {parseFromString} from "./parser"
@@ -27,43 +26,9 @@ export default class KmlViewer extends Component{
         super();
         // State
         this.state = { 
-            kml   : null,
-            map   : null
         }
     }
     
-    static getDerivedStateFromProps(props, state) {
-        let stateChanges = {}
-
-        // UPDATE KML DATA?
-        if(state.kml !== props.kml){ // memoization 
-            stateChanges.kml = props.kml
-        }
-
-        // SAVE MAP IN THE STATE
-        if(state.map !== props.map) // memoization
-            stateChanges.map = props.map
-
-        // UPDATE MAP DRAWINGS?
-        if(stateChanges.kml!==undefined || stateChanges.map!==undefined ){
-            console.warn('UPDATE DRAWINGS REQUIRED')
-            // Remove old
-            if(state.kml) state.kml.updateMapDrawing(null)
-            // Create new 
-            let kmlNew = stateChanges.kml ? stateChanges.kml : state.kml
-            if(kmlNew) kmlNew.updateMapDrawing(props.map)
-        }
-
-        console.log('KmlViewer.getDerivedStateFromProps',stateChanges)
-
-        return stateChanges;
-    }
-
-    componentWillUnmount(){
-        console.log('KmlViewer.componentWillUnmount');
-        if(this.state.kml) this.state.kml.updateMapDrawing(null)
-    }
-
     // RENDER DATA
     renderContainer(obj, key){
         var rows=[]
@@ -107,7 +72,7 @@ export default class KmlViewer extends Component{
         </div>);
     }
     renderData(){
-        let kml = this.state.kml;
+        let kml = this.props.kml;
         if(!kml) 
             return null;
 
@@ -127,15 +92,17 @@ export default class KmlViewer extends Component{
     //--------------------------------------------------
     // HANDLERS
     onPlacemarkClick(obj){
-        // Toggle selected
-        obj.isSelected = obj.isSelected?false:true;
-        obj.updateMapDrawing(this.state.map);
-        // Refresh ui
-        this.setState({kml : this.state.kml})
+        if(obj.setSelected){
+            // Toggle selected
+            obj.setSelected(obj.isSelected?false:true)
+
+            // Refresh ui
+            this.setState(this.state)
+        }
     }
 
     locatePlacemark(obj){
-        obj.locate(this.state.map)
+        obj.locate()
     }
 
 }

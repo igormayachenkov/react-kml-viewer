@@ -25,16 +25,25 @@ class App extends Component{
         // Load map
         this.loadGoogleMapsAPI()
     }
+
     parseKml(kmlText){
         try{
             // Verify KML text
             if(!kmlText) throw String('data is empty')
 
             // UPDATE DATA
-            console.warn('App: update KML')
+            console.warn('App: parse KML')
 
             // Parse: text => JavaScript object
             let kml = KML.parseFromString(kmlText)
+
+            // Remove old map drawings
+            if(this.state.kml) 
+                this.state.kml.setMap(null)
+
+            // Create new map drawings
+            if(this.state.map)
+                kml.setMap(this.state.map)
     
             // Set state changes
             this.setState({
@@ -66,6 +75,11 @@ class App extends Component{
                     }
                 );
                 console.log('The map has been created')
+
+                // Create map drawings
+                if(this.state.kml)
+                    this.state.kml.setMap(map)
+
                 
                 this.setState({
                     mapApiStatus : 'loaded',

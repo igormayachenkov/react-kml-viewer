@@ -4,7 +4,7 @@ export function parseFromString(kmlText){
 
     // Parse: string => DOM Document
     let domParser = new DOMParser();
-    if(!domParser) throw 'DOMParser is unsupported'
+    if(!domParser) throw String('DOMParser is unsupported')
     let domDocument = domParser.parseFromString(kmlText,"text/xml");
     
     // Verify structure: kml/Document
@@ -24,8 +24,11 @@ export function parseFromString(kmlText){
 export class Feature{
     constructor(){
         this.name = null
+        this.map  = null 
     }
-    updateMapDrawing(map){ }
+    setMap(map){ 
+        this.map = map 
+    }
     locate(map){}
 }
 
@@ -66,8 +69,9 @@ export class Container extends Feature{
     }
     
     // MAP DRAWING
-    updateMapDrawing(map){
-        this.features.forEach(f=>f.updateMapDrawing(map))
+    setMap(map){
+        super.setMap(map)
+        this.features.forEach(f=>f.setMap(map))
     }
 }
 export class Document extends Container{
@@ -80,6 +84,7 @@ export class Placemark extends Feature{
     constructor(){
         super()
         this.geometry = null
+        this.isSelected = false
     }
     parse(element){
         if (element.children){
@@ -109,13 +114,22 @@ export class Placemark extends Feature{
     }
     
     // MAP DRAWING
-    updateMapDrawing(map){
-        if(this.geometry)
-            this.geometry.updateMapDrawing(map, this.name, this.isSelected);
+    setSelected(selected){
+        this.isSelected = selected
+        this.updateMapDrawing()
     }
-    locate(map){
+    setMap(map){
+        super.setMap(map)
+        this.updateMapDrawing()
+    }
+    updateMapDrawing(){
         if(this.geometry)
-            this.geometry.locate(map)
+            this.geometry.updateMapDrawing(this.map, this.name, this.isSelected);
+    }
+
+    locate(){
+        if(this.map && this.geometry)
+            this.geometry.locate(this.map)
     }
 
 }
