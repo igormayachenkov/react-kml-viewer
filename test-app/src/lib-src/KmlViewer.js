@@ -73,8 +73,9 @@ export default class KmlViewer extends Component{
             if(state.kml) 
                 state.kml.setMap(null)
             // Create new map drawings
-            let kmlNew = stateChanges.kml ? stateChanges.kml : state.kml
-            if(kmlNew) kmlNew.setMap(props.map)
+            let kmlActual = stateChanges.kml!==undefined ? stateChanges.kml : state.kml
+            if(kmlActual) 
+                kmlActual.setMap(props.map)
         }
 
         console.log('KmlViewer.getDerivedStateFromProps',stateChanges)

@@ -2,7 +2,8 @@
 
 export class Kml{
     constructor(options){
-        this.options = options ? options : {}
+        this.options = {}
+        if(options) Object.assign(this.options,options);
         this.root = null 
         this.map  = null
     }
@@ -28,6 +29,8 @@ export class Kml{
     }
 
     setMap(map){ 
+        if(this.map===map){console.warn('KML.setMap - do nothing',map); return;}
+        console.warn('KML.setMap',map)
         this.map = map 
         if(this.root) this.root.updateMapDrawing()
     }

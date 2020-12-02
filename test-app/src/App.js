@@ -13,8 +13,12 @@ class App extends Component{
         super()
         this.state={
             map          : null,
-            kmlText      : kmlSample
+            kmlText      : kmlSample,
+            editorText   : kmlSample
         }
+        this.onEditorChange=this.onEditorChange.bind(this)
+        this.onFileSelected = this.onFileSelected.bind(this);
+
     }
 
     componentDidMount(){
@@ -47,6 +51,31 @@ class App extends Component{
     
         });
     }
+    onEditorChange(e){
+        this.setState({editorText:e.target.value})
+    }
+    onFileSelected(event){
+        const files = event.target.files; if(!files) return;
+        const file = files[0]; if(!file) return;
+
+        const reader = new FileReader();
+        reader.addEventListener('load', (event) => {
+            //img.src = event.target.result;
+            if(event.target.readyState==2){
+            //  if(file.name.endsWith('.kml'))
+            //     this.insertKML(event.target.result)
+            //   else
+            //     this.insertGeoJSON(event.target.result)
+                this.setState({
+                    editorText : event.target.result
+                })
+            }else{
+                console.error("File open error")
+            }    
+        });
+        reader.readAsText(file);
+    }
+
 
     render(){
         console.log('APP.render')
@@ -55,6 +84,16 @@ class App extends Component{
             <div className="App">
             
             <div className="layout-info">
+                <div>
+                    Load text from file: <input type="file"  accept=".kml" onChange={this.onFileSelected}></input>
+                </div>
+                <textarea 
+                    value  ={this.state.editorText}
+                    onChange={this.onEditorChange}/>
+                <div>
+                    <button onClick={()=>{this.setState({kmlText:this.state.editorText})}}>Parse from the text</button>
+                    <button onClick={()=>{this.setState({kmlText:null})}}>Clear</button>
+                </div>
                 <div>KmlViewer:</div>
                 <KmlViewer 
                     kmlText    = {this.state.kmlText} 
