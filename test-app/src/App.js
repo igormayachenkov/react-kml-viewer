@@ -14,9 +14,11 @@ class App extends Component{
         this.state={
             map          : null,
             kmlText      : kmlSample,
-            editorText   : kmlSample
+            editorText   : kmlSample,
+            kml          : null // parsed data object
         }
-        this.onEditorChange=this.onEditorChange.bind(this)
+        this.onEditorChange = this.onEditorChange.bind(this)
+        this.onKmlChange    = this.onKmlChange.bind(this)
         this.onFileSelected = this.onFileSelected.bind(this);
 
     }
@@ -61,7 +63,7 @@ class App extends Component{
         const reader = new FileReader();
         reader.addEventListener('load', (event) => {
             //img.src = event.target.result;
-            if(event.target.readyState==2){
+            if(event.target.readyState===2){
             //  if(file.name.endsWith('.kml'))
             //     this.insertKML(event.target.result)
             //   else
@@ -76,6 +78,18 @@ class App extends Component{
         reader.readAsText(file);
     }
 
+    onKmlChange(kml){
+        console.warn('onKmlChange',kml)
+        this.setState({kml:kml})
+    }
+
+    deselectAll(){
+        let kml = this.state.kml
+        if(kml){
+            kml.deselectAll()
+            this.setState({kmlText:this.state.kmlText})
+        }
+    }
 
     render(){
         console.log('APP.render')
@@ -84,21 +98,27 @@ class App extends Component{
             <div className="App">
             
             <div className="layout-info">
+                <h1>Kml Text</h1>
                 <div>
-                    Load text from file: <input type="file"  accept=".kml" onChange={this.onFileSelected}></input>
+                    <input type="file"  accept=".kml" onChange={this.onFileSelected}></input>
                 </div>
                 <textarea 
                     value  ={this.state.editorText}
                     onChange={this.onEditorChange}/>
+
+                <h1>Kml Viewer</h1>
                 <div>
                     <button onClick={()=>{this.setState({kmlText:this.state.editorText})}}>Parse from the text</button>
-                    <button onClick={()=>{this.setState({kmlText:null})}}>Clear</button>
+                    {this.state.kmlText &&
+                        <button onClick={()=>{this.setState({kmlText:null})}}>Clear data</button>}
+                    {this.state.kml &&
+                        <button onClick={()=>{this.deselectAll()}}>Deselect all</button>}
                 </div>
-                <div>KmlViewer:</div>
                 <KmlViewer 
-                    kmlText    = {this.state.kmlText} 
-                    kmlOptions = {{singleSelection:false}}
-                    map        = {this.state.map}/> 
+                    kmlText     = {this.state.kmlText} 
+                    kmlOptions  = {{singleSelection:false}}
+                    map         = {this.state.map}
+                    onKmlChange = {this.onKmlChange} /> 
             </div>
 
             <div className="layout-map">

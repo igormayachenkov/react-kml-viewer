@@ -80,20 +80,17 @@ export default class KmlViewer extends Component{
 
         console.log('KmlViewer.getDerivedStateFromProps',stateChanges)
 
+        // Notify container
+        if(stateChanges.kml!==undefined && props.onKmlChange)
+        props.onKmlChange(stateChanges.kml)
+    
+
         return stateChanges;
     }
 
     componentWillUnmount(){
         if(this.state.kml) 
             this.state.kml.setMap(null)
-    }
-
-    deselectAll(){
-        let kml = this.state.kml
-        if(kml){
-            kml.deselectAll()
-            this.setState({kml:kml})
-        }
     }
 
     // RENDER DATA
@@ -150,12 +147,9 @@ export default class KmlViewer extends Component{
         console.log('KmlViewer.render')
         if(this.state.error)
             var htmlError = <div className="kml-viewer-error">{this.state.error}</div>;
-        if(this.state.kml)
-            var btnDeselectAll= <div><button onClick={()=>{this.deselectAll()}}>Deselect all</button></div>
 
         return (
             <div className='kml-viewer'>
-                {btnDeselectAll}
                 {htmlError}
                 {this.renderData()}
             </div>

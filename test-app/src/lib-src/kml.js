@@ -29,8 +29,8 @@ export class Kml{
     }
 
     setMap(map){ 
-        if(this.map===map){console.warn('KML.setMap - do nothing',map); return;}
-        console.warn('KML.setMap',map)
+        if(this.map===map) return;
+        console.log('KML.setMap',map)
         this.map = map 
         if(this.root) this.root.updateMapDrawing()
     }
