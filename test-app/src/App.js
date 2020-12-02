@@ -90,6 +90,21 @@ class App extends Component{
             this.setState({kmlText:this.state.kmlText})
         }
     }
+    getSelected(){
+        let kml = this.state.kml
+        if(kml){
+            let selected = kml.getSelected()
+            if(selected.length){
+                var text  = 'Selected Items: \n'; 
+                let comma = ''
+                selected.forEach(item => {
+                    text += comma+'"'+item.name+'"';
+                    comma = ', '
+                });
+            }else var text = 'No selected items'
+            alert(text)
+        }
+    }
 
     render(){
         console.log('APP.render')
@@ -113,6 +128,8 @@ class App extends Component{
                         <button onClick={()=>{this.setState({kmlText:null})}}>Clear data</button>}
                     {this.state.kml &&
                         <button onClick={()=>{this.deselectAll()}}>Deselect all</button>}
+                    {this.state.kml &&
+                        <button onClick={()=>{this.getSelected()}}>Get selected</button>}
                 </div>
                 <KmlViewer 
                     kmlText     = {this.state.kmlText} 

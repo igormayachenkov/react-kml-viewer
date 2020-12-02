@@ -1,6 +1,6 @@
 {
   "name": "react-kml-viewer",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Parse and view KML-data",
   "main": "index.js",
   "repository": {

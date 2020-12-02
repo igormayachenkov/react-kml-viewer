@@ -40,6 +40,15 @@ export class Kml{
             this.root.deselectAll()
     }
 
+    getSelected(){
+        let selected = []
+        if(this.root)
+            this.root.fillSelected(selected)
+        return selected;
+    }
+
+
+
 }
 
 
@@ -52,6 +61,10 @@ export class Feature{
     updateMapDrawing(){}
     locate(map){}
     deselectAll(){}
+    fillSelected(selected){
+        if(this.isSelected) 
+            selected.push(this)
+    }
 }
 
 // CONTAINER
@@ -98,6 +111,11 @@ export class Container extends Feature{
     deselectAll(){
         this.features.forEach(f=>f.deselectAll())
     }
+    fillSelected(selected){
+        super.fillSelected(selected)
+        this.features.forEach(f=>f.fillSelected(selected))
+    }
+
 }
 export class Document extends Container{
 }
